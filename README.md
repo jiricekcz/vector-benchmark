@@ -1,1 +1,1 @@
-# typescript-node-project
+# Vector operations benchmark
