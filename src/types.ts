@@ -25,7 +25,7 @@ export type Benchmark<A extends Record<string, any>> = {
 }
 
 export type BenchmarkSet<A extends Record<string, any>> = {
-    benchmarks: Benchmark<A>;
+    benchmark: Benchmark<A>;
     runs: A[];
 };
 
