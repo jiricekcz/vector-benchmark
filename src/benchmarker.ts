@@ -20,10 +20,13 @@ export function totalBenchmarkCount(): number {
 
 export function run(): BenchmarkReport {
     const report = new BenchmarkReport({ totalRunLength: totalRunLength() });
-    runWithReport(report);
+    report.requestHardwareInfo().then(() => {
+        runWithReport(report);
+    });
     return report;
 }
 async function runWithReport(result: BenchmarkReport): Promise<void> {
+    result.startBenchmark();
     for (const benchmark of benchmarks) {
         result.initBenchmark(benchmark.benchmark);
         for (const run of benchmark.runs) {

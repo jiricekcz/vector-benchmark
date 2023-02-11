@@ -7,10 +7,19 @@ const bar = new SingleBar({
     format: "Progress: {bar} {percentage}% | {eta}s",
 })
 const report = runBenchmark();
-bar.start(report.totalRunLength, 0);
+report.on("requestHardwareInfo", () => {
+    console.log("Requesting hardware info...");
+});
+report.on("hardwareInfo", (info) => {
+    console.log("Got hardware info!");
+});
+report.on("start", () => {
+    bar.start(report.totalRunLength, 0);
+});
 report.on("progress", r => {
     bar.update(r.currentRunLength);
 });
+
 
 
 report.on("finished", async r => {

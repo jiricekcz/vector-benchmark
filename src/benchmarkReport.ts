@@ -41,7 +41,7 @@ export class BenchmarkReport extends EventEmitter {
         }
     }
 
-    private hardwareInfoPromise: Promise<void> = this.gatherHardwareInfo();
+    private hardwareInfoPromise: Promise<void> = new Promise<void>(() => {});;
     constructor({ totalRunLength }: { totalRunLength: number }) {
         super();
         this.totalRunLength = totalRunLength;
@@ -61,6 +61,9 @@ export class BenchmarkReport extends EventEmitter {
     public on(eventName: "progress", callback: (event: { totalRunLength: number, currentRunLength: number, progress: number }) => void): this;
     public on(eventName: "finished", callback: (event: this) => void): this;
     public on(eventName: "benchmark", callback: (benchmark: Benchmark<any>) => void): this;
+    public on(eventName: "requestHardwareInfo", callback: () => void): this;
+    public on(eventName: "hardwareInfo", callback: (info: BenchmarkHardwareInfo) => void): this;
+    public on(eventName: "start", callback: () => void): this;
     public on(eventName: string, callback: (...args: any[]) => void): this {
         return super.on(eventName, callback);
     }
@@ -69,6 +72,9 @@ export class BenchmarkReport extends EventEmitter {
     public emit(eventName: "progress", event: { totalRunLength: number, currentRunLength: number, progress: number }): boolean;
     public emit(eventName: "finished", event: this): boolean;
     public emit(eventName: "benchmark", benchmark: Benchmark<any>): boolean;
+    public emit(eventName: "requestHardwareInfo"): boolean;
+    public emit(eventName: "hardwareInfo", info: BenchmarkHardwareInfo): boolean;
+    public emit(eventName: "start"): boolean;
     public emit(eventName: string, ...args: any[]): boolean {
         return super.emit(eventName, ...args);
     }
@@ -76,6 +82,10 @@ export class BenchmarkReport extends EventEmitter {
     public async finishOk(): Promise<void> {
         await this.hardwareInfoPromise;
         this.emit("finished", this);
+    }
+
+    public startBenchmark(): void {
+        this.emit("start");
     }
 
     public finishBenchmarkRun(runLength: number): void {
@@ -144,6 +154,13 @@ export class BenchmarkReport extends EventEmitter {
         this.hardwareInfo.memory.clockSpeed = Math.min(...memoryList.map(m => m.clockSpeed).filter(m => m !== null) as number[]) * 1e6;
         const os = await hwInfo.osInfo();
         this.hardwareInfo.os.platform = os.platform;
+    }
+
+    public async requestHardwareInfo(): Promise<void> {
+        this.hardwareInfoPromise = this.gatherHardwareInfo();
+        this.emit("requestHardwareInfo");
+        await this.hardwareInfoPromise;
+        this.emit("hardwareInfo", this.hardwareInfo);
     }
 }
 
