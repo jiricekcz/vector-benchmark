@@ -7,6 +7,10 @@ export const benchmarks: BenchmarkSeries = [
         benchmark: ADDITION_IN_PLACE,
         runs: [
             {
+                rounds: 1,
+                vectorLength: 1
+            },
+            {
                 rounds: 1000000,
                 vectorLength: 2
             },
