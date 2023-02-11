@@ -34,7 +34,38 @@ export type BenchmarkSeries = BenchmarkSet<BenchmarkOptionsValue>[]
 export type BenchmarkOptionsKey = keyof BenchmarkOptions;
 export type BenchmarkOptionsValue = BenchmarkOptions[keyof BenchmarkOptions];
 
-
+export type BenchmarkHardwareInfo = {
+    isVirtual: boolean | null,
+    cpu: {
+        manufacturer: string | null,
+        brand: string | null,
+        fequency: {
+            default: number | null,
+            max: number | null,
+            min: number | null,
+        },
+        cores: {
+            count: number | null,
+            physical: number | null,
+            efficiency: number | null,
+            performance: number | null,
+        }
+        count: number | null,
+        cache: {
+            l1d: number | null,
+            l1i: number | null,
+            l2: number | null,
+            l3: number | null,
+        }
+    },
+    memory: {
+        total: number | null,
+        clockSpeed: number | null,
+    }
+    os: {
+        platform: string | null,
+    }
+}
 // Specfic benchmarks
 export type BenchmarkOptions = {
     'addition-in-place': {

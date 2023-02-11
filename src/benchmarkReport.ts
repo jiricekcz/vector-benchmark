@@ -1,5 +1,6 @@
 import EventEmitter from "events";
-import { Benchmark, LibraryName, LIBRARY_NAMES } from "./types";
+import hwInfo from "systeminformation";
+import { Benchmark, BenchmarkHardwareInfo, LibraryName, LIBRARY_NAMES } from "./types";
 
 export class BenchmarkReport extends EventEmitter {
     public totalRunLength: number;
@@ -7,16 +8,49 @@ export class BenchmarkReport extends EventEmitter {
     public results: {
         [name: string]: BenchmarkResult;
     } = {};
+    public hardwareInfo: BenchmarkHardwareInfo = {
+        isVirtual: null,
+        cpu: {
+            brand: null,
+            manufacturer: null,
+            fequency: {
+                default: null,
+                max: null,
+                min: null,
+            },
+            cores: {
+                count: null,
+                physical: null,
+                efficiency: null,
+                performance: null,
+            },
+            count: null,
+            cache: {
+                l1d: null,
+                l1i: null,
+                l2: null,
+                l3: null,
+            }
+        },
+        memory: {
+            total: null,
+            clockSpeed: null,
+        },
+        os: {
+            platform: null,
+        }
+    }
 
+    private hardwareInfoPromise: Promise<void> = this.gatherHardwareInfo();
     constructor({ totalRunLength }: { totalRunLength: number }) {
         super();
         this.totalRunLength = totalRunLength;
     }
 
     public finished(): Promise<void> {
-        return new Promise((resolve) => {
+        return Promise.all([new Promise<void>((resolve) => {
             this.once("finished", () => resolve());
-        });
+        }), this.hardwareInfoPromise]).then(() => { });
     }
 
     public progress(): number {
@@ -39,7 +73,8 @@ export class BenchmarkReport extends EventEmitter {
         return super.emit(eventName, ...args);
     }
 
-    public finishOk(): void {
+    public async finishOk(): Promise<void> {
+        await this.hardwareInfoPromise;
         this.emit("finished", this);
     }
 
@@ -72,13 +107,43 @@ export class BenchmarkReport extends EventEmitter {
         currentRunLength: number,
         progress: number,
         results: { [name: string]: ReturnType<BenchmarkResult["toJSON"]> },
+        hardwareInfo: BenchmarkHardwareInfo,
+
     } {
         return {
             totalRunLength: this.totalRunLength,
             currentRunLength: this.currentRunLength,
             progress: this.progress(),
-            results: Object.fromEntries(Object.entries(this.results).map(([name, result]) => [name, result.toJSON()]))
+            results: Object.fromEntries(Object.entries(this.results).map(([name, result]) => [name, result.toJSON()])),
+            hardwareInfo: this.hardwareInfo,
         }
+    }
+
+
+    protected async gatherHardwareInfo(): Promise<void> {
+        const virtual = (await hwInfo.system()).virtual;
+        this.hardwareInfo.isVirtual = virtual;
+        const cpu = await hwInfo.cpu();
+        this.hardwareInfo.cpu.brand = cpu.brand;
+        this.hardwareInfo.cpu.manufacturer = cpu.manufacturer;
+        this.hardwareInfo.cpu.fequency.default = cpu.speed * 1e9;
+        this.hardwareInfo.cpu.fequency.max = cpu.speedMax * 1e9;
+        this.hardwareInfo.cpu.fequency.min = cpu.speedMin * 1e9;
+        this.hardwareInfo.cpu.cores.count = cpu.cores;
+        this.hardwareInfo.cpu.cores.physical = cpu.physicalCores;
+        this.hardwareInfo.cpu.cores.efficiency = cpu.efficiencyCores ?? null;
+        this.hardwareInfo.cpu.cores.performance = cpu.performanceCores ?? null;
+        this.hardwareInfo.cpu.count = cpu.processors;
+        this.hardwareInfo.cpu.cache.l1d = cpu.cache.l1d;
+        this.hardwareInfo.cpu.cache.l1i = cpu.cache.l1i;
+        this.hardwareInfo.cpu.cache.l2 = cpu.cache.l2;
+        this.hardwareInfo.cpu.cache.l3 = cpu.cache.l3;
+        const memory = await hwInfo.mem();
+        this.hardwareInfo.memory.total = memory.total;
+        const memoryList = await hwInfo.memLayout();
+        this.hardwareInfo.memory.clockSpeed = Math.min(...memoryList.map(m => m.clockSpeed).filter(m => m !== null) as number[]) * 1e6;
+        const os = await hwInfo.osInfo();
+        this.hardwareInfo.os.platform = os.platform;
     }
 }
 

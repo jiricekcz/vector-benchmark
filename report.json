@@ -1,0 +1,50 @@
+{
+    "totalRunLength": 500000,
+    "currentRunLength": 500000,
+    "progress": 1,
+    "results": {
+        "addition-in-place": {
+            "name": "addition-in-place",
+            "runs": {
+                "Addition of 2-dimensional vectors in place 100000 times": {
+                    "vect-ops": 14.042500019073486
+                },
+                "Addition of 3-dimensional vectors in place 100000 times": {
+                    "vect-ops": 17.549099922180176
+                }
+            }
+        }
+    },
+    "hardwareInfo": {
+        "isVirtual": false,
+        "cpu": {
+            "brand": "Core™ i5-8265U",
+            "manufacturer": "Intel",
+            "fequency": {
+                "default": 1600000000,
+                "max": 1800000000,
+                "min": 1600000000
+            },
+            "cores": {
+                "count": 8,
+                "physical": 4,
+                "efficiency": 0,
+                "performance": 8
+            },
+            "count": 1,
+            "cache": {
+                "l1d": 128,
+                "l1i": 128,
+                "l2": 1048576,
+                "l3": 6291456
+            }
+        },
+        "memory": {
+            "total": 8430415872,
+            "clockSpeed": 2400000000
+        },
+        "os": {
+            "platform": "Windows"
+        }
+    }
+}
